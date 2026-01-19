@@ -1,5 +1,6 @@
 import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import { useTheme } from '../../context/ThemeContext';
 import 'leaflet/dist/leaflet.css';
 import './Map.css';
 import L from 'leaflet';
@@ -13,18 +14,35 @@ L.Icon.Default.mergeOptions({
 });
 
 const Map = ({ routes }) => {
+    const { theme } = useTheme();
     const center = [41.2995, 69.2401]; // Tashkent coordinates
+
+    // Theme-aware tile layer URLs
+    const tileUrl = theme === 'dark'
+        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+        : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+    const attribution = theme === 'dark'
+        ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
     return (
         <div className="map-wrapper">
+            <div className="map-header">
+                <h3>
+                    <span className="map-icon">🗺️</span>
+                    Xarita
+                </h3>
+            </div>
             <MapContainer
                 center={center}
                 zoom={12}
                 style={{ height: '100%', width: '100%' }}
             >
                 <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    key={theme}
+                    attribution={attribution}
+                    url={tileUrl}
                 />
 
                 {routes.map((route, index) => (
@@ -33,18 +51,18 @@ const Map = ({ routes }) => {
                             <Polyline
                                 positions={route.coordinates}
                                 color={route.color || '#667eea'}
-                                weight={4}
-                                opacity={0.7}
+                                weight={5}
+                                opacity={0.8}
                             />
                         )}
 
                         {route.coordinates && route.coordinates.map((coord, idx) => (
                             <Marker key={idx} position={coord}>
                                 <Popup>
-                                    <div>
+                                    <div className="map-popup">
                                         <strong>Marshrut № {route.number}</strong>
                                         <br />
-                                        {idx === 0 ? route.from : route.to}
+                                        <span>{idx === 0 ? route.from : route.to}</span>
                                     </div>
                                 </Popup>
                             </Marker>
